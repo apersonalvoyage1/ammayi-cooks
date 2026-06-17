@@ -252,13 +252,26 @@ if(!cloudMode){
     if(user){
       document.getElementById("userEmail").textContent = user.email;
       document.getElementById("userBox").hidden = false;
-      if(!cloudConnected){ cloudConnected = true; connectCloud(renderCurrent); }
-      showApp();
+      showApp();                       // show the dashboard first, no matter what
+      if(!cloudConnected){
+        cloudConnected = true;
+        try{ connectCloud(renderCurrent, cloudError); }
+        catch(e){ cloudError(e); }
+      }
     }else{
       document.getElementById("loginPass").value = "";
       showLogin();
     }
   });
+}
+
+function cloudError(err){
+  const b = document.getElementById("cloudErr");
+  if(!b) return;
+  b.hidden = false;
+  b.textContent = (err && (err.code === "PERMISSION_DENIED" || /permission/i.test(err.message||"")))
+    ? "⚠ Signed in, but can't access the shared database. Publish your Realtime Database rules (see README), then refresh."
+    : "⚠ Couldn't reach the shared database — showing this device's cached data.";
 }
 
 route(); // initial render based on current hash

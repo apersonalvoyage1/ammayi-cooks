@@ -129,20 +129,20 @@ function save(){
   }, 350);
 }
 
-function connectCloud(onChange){
+function connectCloud(onChange, onError){
   dbRef = fbDb.ref(DB_PATH);
   dbRef.on("value", snap=>{
     const data = snap.val();
     if(!data){                       // first ever run → seed the cloud
       suppressEcho = JSON.stringify(state);
-      dbRef.set(state);
+      dbRef.set(state).catch(err=> onError && onError(err));
       return;
     }
     const json = JSON.stringify(data);
     if(json === suppressEcho) return;          // echo of our own write
     if(json === JSON.stringify(state)) return; // no real change
     applyRemote(data, onChange);
-  });
+  }, err=> onError && onError(err));
 }
 function disconnectCloud(){
   if(dbRef){ dbRef.off(); dbRef = null; }

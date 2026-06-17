@@ -34,6 +34,8 @@
 .login-btn:disabled{opacity:.6;cursor:default;}
 .login-err{color:var(--red);font-size:13px;min-height:18px;margin:0;}
 .user-email{color:var(--olive-dark);font-weight:600;}
+.cloud-err{background:#fdeaea;border:1px solid #f3c4c4;color:#a23030;
+  padding:11px 16px;border-radius:10px;font-size:13.5px;margin-bottom:14px;}
 body{
   margin:0;
   font-family:'Poppins',system-ui,sans-serif;
