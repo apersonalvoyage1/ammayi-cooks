@@ -15,6 +15,25 @@
 }
 
 *{box-sizing:border-box;}
+
+/* ---- Login / boot gate ---- */
+.gate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  padding:20px;background:
+    radial-gradient(900px 400px at 50% -10%, #f0e6d3 0%, transparent 60%),
+    var(--cream);z-index:50;}
+.gate-msg{color:var(--muted);font-size:15px;}
+.login-card{display:flex;flex-direction:column;gap:12px;width:100%;max-width:360px;
+  padding:32px 30px;text-align:center;}
+.login-logo{width:96px;height:96px;object-fit:contain;border-radius:50%;margin:0 auto 4px;}
+.login-card .hero-name{font-size:38px;margin:0;}
+.login-sub{margin:0 0 8px;color:var(--muted);font-size:14px;}
+.login-card input{border:1px solid var(--line);border-radius:9px;padding:12px 14px;
+  font:inherit;color:var(--ink);background:#fff;}
+.login-card input:focus{outline:none;border-color:var(--terracotta);}
+.login-btn{margin-top:4px;}
+.login-btn:disabled{opacity:.6;cursor:default;}
+.login-err{color:var(--red);font-size:13px;min-height:18px;margin:0;}
+.user-email{color:var(--olive-dark);font-weight:600;}
 body{
   margin:0;
   font-family:'Poppins',system-ui,sans-serif;

@@ -10,9 +10,25 @@ It's a **single page** (`index.html`) with three screens you navigate between �
 - **Orders** (`#orders`) — each order has its own **order number**, date, customer and **multiple dishes** (e.g. 2× Pav Bhaji + 2× Dal+Sabji). Pick a dish and the price auto-fills; order + overall totals roll up.
 - **Profit** (`#profit`) — live Total Sales − Total Cost = Net Profit, plus margin.
 
-**Files:** `index.html` (all screens), `app.js` (logic + navigation), `store.js` (shared data, menu & ingredient list), `styles.css`.
+**Files:** `index.html` (all screens), `app.js` (logic + navigation), `store.js` (data + cloud sync), `firebase-init.js` (Firebase config), `styles.css`.
 
-All data is saved in your browser (localStorage), so it persists between visits on that device. "Reset all data" restores the starter data.
+## Login & shared data (Firebase)
+The dashboard is gated by a **login screen** (Firebase Authentication, email/password) and the costs/orders are stored in **Firebase Realtime Database**, so you and Deepti see the same live numbers across devices in real time. localStorage is kept only as an instant-paint cache / offline fallback.
+
+The `apiKey` in `firebase-init.js` is **public by design** — security comes from Auth + database rules, not from hiding it.
+
+**Realtime Database rules** (set these in Firebase console → Realtime Database → Rules):
+```json
+{
+  "rules": {
+    ".read": "auth != null",
+    ".write": "auth != null"
+  }
+}
+```
+Add users in Firebase console → Authentication → Users → Add user.
+
+"Reset all data" restores the starter data **for everyone** (it writes to the shared database).
 
 ## Add your logo
 Save your logo image as **`assets/logo.png`** (square works best). Until then a styled text fallback shows.

@@ -86,23 +86,81 @@ const SEED_ORDERS = [
    items:[{item:"Rice + Dal + Sabji",qty:3,price:15},{item:"Mini Samosas (12 pcs)",qty:1,price:8}]},
 ];
 
-/* ---- State + persistence ---- */
+/* ---- State + persistence ----
+   Source of truth = Firebase Realtime Database (shared across devices).
+   localStorage is kept as an instant-paint cache + offline fallback. */
 const KEY = "ammayi_data_v2";
-let state = load();
+const seedState = () => ({
+  costs: structuredClone(SEED_COSTS),
+  orders: structuredClone(SEED_ORDERS),
+  nextOrderNo: 3,
+});
+let state = loadCache();
 
-function load(){
+function loadCache(){
   try{
     const s = JSON.parse(localStorage.getItem(KEY));
     if(s && s.costs && s.orders) return s;
   }catch(e){}
-  return {
-    costs: structuredClone(SEED_COSTS),
-    orders: structuredClone(SEED_ORDERS),
-    nextOrderNo: 3,
-  };
+  return seedState();
 }
-function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
-function resetData(){ localStorage.removeItem(KEY); state = load(); }
+function cacheSave(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+
+/* ---- Cloud sync (Realtime Database) ---- */
+const DB_PATH = "kitchen";          // single shared node both accounts read/write
+let dbRef = null;
+let writeTimer = null;
+let suppressEcho = "";              // JSON we just wrote — ignore its echo
+let pendingRemote = null;           // remote update deferred while user is typing
+
+const isEditingApp = () => {
+  const a = document.activeElement;
+  return a && a.closest && a.closest("#view-costs, #view-orders");
+};
+
+function save(){
+  cacheSave();
+  if(!dbRef) return;                // not connected (offline/local mode)
+  clearTimeout(writeTimer);
+  writeTimer = setTimeout(()=>{
+    const json = JSON.stringify(state);
+    suppressEcho = json;
+    dbRef.set(JSON.parse(json)).catch(err=>console.warn("cloud write failed", err));
+  }, 350);
+}
+
+function connectCloud(onChange){
+  dbRef = fbDb.ref(DB_PATH);
+  dbRef.on("value", snap=>{
+    const data = snap.val();
+    if(!data){                       // first ever run → seed the cloud
+      suppressEcho = JSON.stringify(state);
+      dbRef.set(state);
+      return;
+    }
+    const json = JSON.stringify(data);
+    if(json === suppressEcho) return;          // echo of our own write
+    if(json === JSON.stringify(state)) return; // no real change
+    applyRemote(data, onChange);
+  });
+}
+function disconnectCloud(){
+  if(dbRef){ dbRef.off(); dbRef = null; }
+}
+function applyRemote(data, onChange){
+  if(isEditingApp()){ pendingRemote = {data, onChange}; return; } // don't clobber typing
+  state = data; cacheSave(); onChange && onChange();
+}
+document.addEventListener("focusout", ()=>{
+  setTimeout(()=>{
+    if(pendingRemote && !isEditingApp()){
+      const {data, onChange} = pendingRemote; pendingRemote = null;
+      state = data; cacheSave(); onChange && onChange();
+    }
+  }, 120);
+});
+
+function resetData(){ state = seedState(); save(); }
 
 /* ---- Derived totals (used by every page) ---- */
 const orderTotal = o => o.items.reduce((s,it)=>s+(Number(it.qty)||0)*(Number(it.price)||0),0);

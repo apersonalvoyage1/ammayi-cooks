@@ -2,6 +2,14 @@
 
 /* ---------- Router ---------- */
 const VIEWS = ["home","costs","orders","profit"];
+function renderCurrent(){
+  const r = (location.hash.replace("#","") || "home");
+  const view = VIEWS.includes(r) ? r : "home";
+  if(view === "home")   renderHome();
+  if(view === "costs")  renderCosts();
+  if(view === "orders") renderOrders();
+  if(view === "profit") renderProfit();
+}
 function route(){
   const r = (location.hash.replace("#","") || "home");
   const view = VIEWS.includes(r) ? r : "home";
@@ -11,10 +19,7 @@ function route(){
   document.querySelectorAll(".navtabs .tab").forEach(t =>
     t.classList.toggle("active", t.dataset.route === view));
 
-  if(view === "home")   renderHome();
-  if(view === "costs")  renderCosts();
-  if(view === "orders") renderOrders();
-  if(view === "profit") renderProfit();
+  renderCurrent();
   window.scrollTo(0,0);
 }
 window.addEventListener("hashchange", route);
@@ -187,9 +192,73 @@ function renderProfit(){
   document.getElementById("pMargin").textContent = sales > 0 ? Math.round((net/sales)*100) + "%" : "—";
 }
 
-/* ====================== Reset + init ====================== */
+/* ====================== Reset ====================== */
 document.getElementById("resetData").addEventListener("click",()=>{
-  if(confirm("Reset all costs and orders back to the starter data?")){ resetData(); route(); }
+  if(confirm("Reset ALL shared costs and orders back to the starter data?\nThis affects everyone, on every device.")){
+    resetData(); route();
+  }
 });
+
+/* ====================== Auth gate + cloud sync ====================== */
+const bootEl  = document.getElementById("boot");
+const loginEl = document.getElementById("login");
+const appEl   = document.querySelector(".app");
+const cloudMode = (typeof firebase !== "undefined" && typeof fbAuth !== "undefined");
+let cloudConnected = false;
+
+function showApp(){
+  bootEl.hidden = true; loginEl.hidden = true; appEl.hidden = false;
+  route();
+}
+function showLogin(){
+  bootEl.hidden = true; appEl.hidden = true; loginEl.hidden = false;
+}
+
+if(!cloudMode){
+  // Offline / opened-as-file fallback: local-only, no login.
+  document.getElementById("userBox").hidden = true;
+  showApp();
+} else {
+  const authErr = code => ({
+    "auth/invalid-email":"That email doesn't look right.",
+    "auth/invalid-credential":"Wrong email or password.",
+    "auth/wrong-password":"Wrong email or password.",
+    "auth/user-not-found":"No account with that email.",
+    "auth/too-many-requests":"Too many attempts — try again in a bit.",
+    "auth/network-request-failed":"Network problem — check your connection.",
+  }[code] || "Couldn't sign in. Please try again.");
+
+  document.getElementById("loginForm").addEventListener("submit", async e=>{
+    e.preventDefault();
+    const btn = document.getElementById("loginBtn");
+    const err = document.getElementById("loginErr");
+    err.textContent = ""; btn.disabled = true; btn.textContent = "Signing in…";
+    try{
+      await fbAuth.signInWithEmailAndPassword(
+        document.getElementById("loginEmail").value.trim(),
+        document.getElementById("loginPass").value);
+    }catch(ex){
+      err.textContent = authErr(ex.code);
+    }finally{
+      btn.disabled = false; btn.textContent = "Sign in";
+    }
+  });
+
+  document.getElementById("signOut").addEventListener("click", ()=>{
+    disconnectCloud(); cloudConnected = false; fbAuth.signOut();
+  });
+
+  fbAuth.onAuthStateChanged(user=>{
+    if(user){
+      document.getElementById("userEmail").textContent = user.email;
+      document.getElementById("userBox").hidden = false;
+      if(!cloudConnected){ cloudConnected = true; connectCloud(renderCurrent); }
+      showApp();
+    }else{
+      document.getElementById("loginPass").value = "";
+      showLogin();
+    }
+  });
+}
 
 route(); // initial render based on current hash

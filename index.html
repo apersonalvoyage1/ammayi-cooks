@@ -11,7 +11,24 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="app">
+
+  <!-- ===== Boot / loading ===== -->
+  <div id="boot" class="gate"><div class="gate-msg">Loading…</div></div>
+
+  <!-- ===== Login ===== -->
+  <div id="login" class="gate" hidden>
+    <form id="loginForm" class="card login-card">
+      <img src="assets/logo.jpeg" alt="Ammayi Cooks" class="login-logo" onerror="this.style.display='none';" />
+      <h1 class="hero-name">Ammayi Cooks</h1>
+      <p class="login-sub">Sign in to your kitchen dashboard</p>
+      <input id="loginEmail" type="email" placeholder="Email" autocomplete="username" required />
+      <input id="loginPass" type="password" placeholder="Password" autocomplete="current-password" required />
+      <button type="submit" class="btn login-btn" id="loginBtn">Sign in</button>
+      <p id="loginErr" class="login-err"></p>
+    </form>
+  </div>
+
+  <div class="app" hidden>
 
     <!-- ===== Top bar (shown on sub-views) ===== -->
     <header class="card topbar" id="topbar" hidden>
@@ -128,9 +145,17 @@
 
     <footer class="foot">
       Made with love. Cooked with care. — every order means a lot ❤ &nbsp;·&nbsp;
+      <span id="userBox" hidden><span id="userEmail" class="user-email"></span> ·
+        <button class="link-btn" id="signOut">Sign out</button> ·&nbsp;</span>
       <button class="link-btn" id="resetData">Reset all data</button>
     </footer>
   </div>
+
+  <!-- Firebase SDK (compat build for plain scripts) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+  <script src="firebase-init.js"></script>
 
   <script src="store.js"></script>
   <script src="app.js"></script>
