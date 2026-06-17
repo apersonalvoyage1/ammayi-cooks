@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ammayi Cooks — Kitchen Dashboard</title>
+  <link rel="icon" href="assets/logo.jpeg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- ===== Top bar (shown on sub-views) ===== -->
+    <header class="card topbar" id="topbar" hidden>
+      <a class="topbar-brand" href="#home">
+        <img src="assets/logo.jpeg" alt="Ammayi Cooks" class="topbar-logo" onerror="this.style.display='none';" />
+        <span>Ammayi Cooks</span>
+      </a>
+      <nav class="navtabs">
+        <a href="#costs"  class="tab" data-route="costs">🧾 COSTING</a>
+        <a href="#orders" class="tab" data-route="orders">📋 ORDERS</a>
+        <a href="#profit" class="tab" data-route="profit">📈 PROFIT</a>
+      </nav>
+    </header>
+
+    <!-- ===== HOME ===== -->
+    <section id="view-home">
+      <header class="card header home-header">
+        <div class="brand">
+          <img src="assets/logo.jpeg" alt="Ammayi Cooks" class="brand-logo"
+               onerror="this.style.display='none';document.getElementById('logoFallback').style.display='flex';" />
+          <div id="logoFallback" class="brand-fallback" style="display:none;">
+            <span class="bf-script">ammayi</span><span class="bf-sub">COOKS</span>
+          </div>
+        </div>
+        <div class="about">
+          <h2>ABOUT US</h2>
+          <p>Ammayi Cooks serves delicious, hygienic and freshly prepared home-style
+             meals made with love. Our focus is on quality ingredients, authentic
+             taste and warm, reliable delivery — <em>made with love, just like home.</em></p>
+        </div>
+      </header>
+
+      <nav class="tiles">
+        <a class="tile" href="#costs">
+          <span class="tile-ico">🧾</span>
+          <span class="tile-name">COSTING / EXPENSES</span>
+          <span class="tile-sub">Track grocery, vegetable &amp; supply costs</span>
+        </a>
+        <a class="tile" href="#orders">
+          <span class="tile-ico">📋</span>
+          <span class="tile-name">ORDERS</span>
+          <span class="tile-sub">Log customer orders &amp; sales</span>
+        </a>
+        <a class="tile" href="#profit">
+          <span class="tile-ico">📈</span>
+          <span class="tile-name">PROFIT</span>
+          <span class="tile-sub">See sales, cost &amp; net profit</span>
+        </a>
+      </nav>
+    </section>
+
+    <!-- ===== COSTING ===== -->
+    <section id="view-costs" class="card panel" hidden>
+      <h3 class="panel-title">COSTING / EXPENSES</h3>
+      <div class="table-wrap">
+        <table id="costTable">
+          <thead>
+            <tr>
+              <th>Product Name</th><th class="num">Quantity</th><th>Unit</th>
+              <th class="num">Unit Price (£)</th><th class="num">Total (£)</th><th class="act">Action</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="panel-foot">
+        <button class="btn" id="addCostRow">+ Add Row</button>
+        <div class="grand"><span>GRAND TOTAL</span><strong id="costGrand" class="money-green">£0.00</strong></div>
+      </div>
+      <datalist id="ingredientList"></datalist>
+    </section>
+
+    <!-- ===== ORDERS ===== -->
+    <section id="view-orders" class="card panel" hidden>
+      <div class="orders-head">
+        <h3 class="panel-title">ORDERS</h3>
+        <button class="btn" id="addOrder">+ New Order</button>
+      </div>
+      <div id="orderList"></div>
+      <div class="summary">
+        <div class="stat"><span>TOTAL ORDERS</span><strong id="sOrders">0</strong></div>
+        <div class="stat"><span>TOTAL ITEMS</span><strong id="sItems">0</strong></div>
+        <div class="stat"><span>TOTAL SALES</span><strong id="sSales" class="money-green">£0.00</strong></div>
+      </div>
+    </section>
+
+    <!-- ===== PROFIT ===== -->
+    <section id="view-profit" class="card panel" hidden>
+      <h3 class="panel-title">PROFIT</h3>
+      <div class="profit-list">
+        <div class="profit-row"><span>Total Sales</span><strong id="pSales" class="money-green">£0.00</strong></div>
+        <div class="profit-row"><span>Total Cost</span><strong id="pCost" class="money-red">£0.00</strong></div>
+        <div class="profit-row net"><span>NET PROFIT</span><strong id="pNet">£0.00</strong></div>
+      </div>
+      <div class="profit-meta">
+        <div class="stat"><span>ORDERS</span><strong id="pOrders">0</strong></div>
+        <div class="stat"><span>ITEMS SOLD</span><strong id="pItems">0</strong></div>
+        <div class="stat"><span>MARGIN</span><strong id="pMargin">0%</strong></div>
+      </div>
+      <p class="hint">Edit the Costing and Orders screens — this figure recalculates automatically.</p>
+    </section>
+
+    <footer class="foot">
+      Made with love. Cooked with care. — every order means a lot ❤ &nbsp;·&nbsp;
+      <button class="link-btn" id="resetData">Reset all data</button>
+    </footer>
+  </div>
+
+  <script src="store.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
