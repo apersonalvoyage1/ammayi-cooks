@@ -18,7 +18,7 @@ All data is saved in your browser (localStorage), so it persists between visits 
 Save your logo image as **`assets/logo.png`** (square works best). Until then a styled text fallback shows.
 
 ## Run locally
-Just open `index.html` in a browser. (Or `python3 -m http.server` then visit http://localhost:8000.)
+Just double-click `index.html` to open it in a browser — everything works offline, no server needed.
 
 ## Host free on GitHub Pages
 1. Create a new GitHub repo, e.g. `ammayi-cooks`.
