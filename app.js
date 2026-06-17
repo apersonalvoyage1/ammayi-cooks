@@ -11,12 +11,37 @@ function route(){
   document.querySelectorAll(".navtabs .tab").forEach(t =>
     t.classList.toggle("active", t.dataset.route === view));
 
+  if(view === "home")   renderHome();
   if(view === "costs")  renderCosts();
   if(view === "orders") renderOrders();
   if(view === "profit") renderProfit();
   window.scrollTo(0,0);
 }
 window.addEventListener("hashchange", route);
+
+/* ====================== HOME (dashboard overview) ====================== */
+let menuRendered = false;
+function renderHome(){
+  const sales = totalSales(), cost = totalCost(), net = sales - cost;
+  const kpis = [
+    {label:"TOTAL SALES", val:money(sales), cls:"money-green", ico:"💷"},
+    {label:"TOTAL COST",  val:money(cost),  cls:"money-red",   ico:"🧾"},
+    {label:"NET PROFIT",  val:money(net),   cls:net>=0?"money-green":"money-red", ico:"📈"},
+    {label:"ORDERS",      val:state.orders.length, cls:"", ico:"📋"},
+  ];
+  document.getElementById("homeKpis").innerHTML = kpis.map(k=>`
+    <div class="kpi">
+      <span class="kpi-ico">${k.ico}</span>
+      <div><span class="kpi-label">${k.label}</span>
+      <strong class="kpi-val ${k.cls}">${k.val}</strong></div>
+    </div>`).join("");
+
+  if(!menuRendered){
+    document.getElementById("menuGrid").innerHTML =
+      MENU.map(([n,p])=>`<div class="menu-item"><span>${n}</span><strong>${money(p)}</strong></div>`).join("");
+    menuRendered = true;
+  }
+}
 
 /* ====================== COSTING ====================== */
 document.getElementById("ingredientList").innerHTML =
@@ -85,12 +110,14 @@ function orderCard(o, oi){
   const card = document.createElement("div");
   card.className = "order-card";
   card.innerHTML = `
-    <div class="order-top">
+    <div class="order-head">
       <span class="order-no">Order #${pad(o.no)}</span>
+      <span class="order-day">${dayOf(o.date)||"—"}</span>
+      <button class="del-order" title="Delete this order">🗑 Delete</button>
+    </div>
+    <div class="order-fields">
       <label class="oc-field">Date <input class="cell-input f-date" type="date" value="${o.date||""}"></label>
-      <span class="order-day">${dayOf(o.date)}</span>
       <label class="oc-field grow">Customer <input class="cell-input f-customer" placeholder="name (optional)" value="${o.customer??""}"></label>
-      <button class="del-order" title="Delete order">Delete order</button>
     </div>
     <div class="table-wrap">
       <table class="order-items">
@@ -107,7 +134,7 @@ function orderCard(o, oi){
   const dayEl = card.querySelector(".order-day");
   const tbody = card.querySelector("tbody");
 
-  card.querySelector(".f-date").addEventListener("change", e=>{ o.date = e.target.value; dayEl.textContent = dayOf(o.date); save(); });
+  card.querySelector(".f-date").addEventListener("change", e=>{ o.date = e.target.value; dayEl.textContent = dayOf(o.date)||"—"; save(); });
   card.querySelector(".f-customer").addEventListener("input", e=>{ o.customer = e.target.value; save(); });
   card.querySelector(".del-order").addEventListener("click", ()=>{
     if(confirm(`Delete Order #${pad(o.no)}?`)){ state.orders.splice(oi,1); save(); renderOrders(); }

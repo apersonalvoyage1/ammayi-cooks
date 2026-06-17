@@ -28,7 +28,7 @@
 
     <!-- ===== HOME ===== -->
     <section id="view-home">
-      <header class="card header home-header">
+      <header class="card hero">
         <div class="brand">
           <img src="assets/logo.jpeg" alt="Ammayi Cooks" class="brand-logo"
                onerror="this.style.display='none';document.getElementById('logoFallback').style.display='flex';" />
@@ -36,31 +36,43 @@
             <span class="bf-script">ammayi</span><span class="bf-sub">COOKS</span>
           </div>
         </div>
-        <div class="about">
-          <h2>ABOUT US</h2>
-          <p>Ammayi Cooks serves delicious, hygienic and freshly prepared home-style
-             meals made with love. Our focus is on quality ingredients, authentic
-             taste and warm, reliable delivery — <em>made with love, just like home.</em></p>
+        <div class="hero-text">
+          <h1 class="hero-name">Ammayi Cooks</h1>
+          <p class="hero-tag">Made with love, just like home ❤</p>
+          <p class="hero-about">Delicious, hygienic and freshly prepared home-style meals.
+             Our focus is on quality ingredients, authentic taste and warm, reliable delivery.</p>
         </div>
       </header>
+
+      <!-- live KPIs -->
+      <div class="kpis" id="homeKpis"></div>
 
       <nav class="tiles">
         <a class="tile" href="#costs">
           <span class="tile-ico">🧾</span>
           <span class="tile-name">COSTING / EXPENSES</span>
           <span class="tile-sub">Track grocery, vegetable &amp; supply costs</span>
+          <span class="tile-go">Open →</span>
         </a>
         <a class="tile" href="#orders">
           <span class="tile-ico">📋</span>
           <span class="tile-name">ORDERS</span>
           <span class="tile-sub">Log customer orders &amp; sales</span>
+          <span class="tile-go">Open →</span>
         </a>
         <a class="tile" href="#profit">
           <span class="tile-ico">📈</span>
           <span class="tile-name">PROFIT</span>
           <span class="tile-sub">See sales, cost &amp; net profit</span>
+          <span class="tile-go">Open →</span>
         </a>
       </nav>
+
+      <!-- menu reference -->
+      <section class="card menu-card">
+        <h3 class="panel-title">OUR MENU</h3>
+        <div class="menu-grid" id="menuGrid"></div>
+      </section>
     </section>
 
     <!-- ===== COSTING ===== -->
