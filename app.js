@@ -74,7 +74,7 @@ function renderCosts(){
     shown++; shownTotal += (Number(row.qty)||0)*(Number(row.price)||0);
   });
   if(shown === 0){
-    tb.innerHTML = `<tr><td colspan="7" class="empty">No items for this week.</td></tr>`;
+    tb.innerHTML = `<tr><td colspan="8" class="empty">No items for this week.</td></tr>`;
   }
 
   // grand total reflects the current filter
@@ -113,6 +113,7 @@ function costRow(row, i){
     <td><select class="cell-select f-unit">${UNITS.map(u=>`<option ${u===row.unit?"selected":""}>${u}</option>`).join("")}</select></td>
     <td class="num"><input class="cell-input f-price" type="number" min="0" step="any" value="${row.price??""}"></td>
     <td class="num row-total f-line">${money((Number(row.qty)||0)*(Number(row.price)||0))}</td>
+    <td><select class="cell-select f-order">${orderOptions(row.orderNo)}</select></td>
     <td class="act"><button class="del" title="Delete">🗑</button></td>`;
 
   const lineEl = tr.querySelector(".f-line");
@@ -134,9 +135,15 @@ function costRow(row, i){
   tr.querySelector(".f-qty").addEventListener("input", e=>{ row.qty = e.target.value; recalc(); save(); });
   tr.querySelector(".f-price").addEventListener("input", e=>{ row.price = e.target.value; recalc(); save(); });
   unitSel.addEventListener("change", e=>{ row.unit = e.target.value; save(); });
+  tr.querySelector(".f-order").addEventListener("change", e=>{ row.orderNo = e.target.value ? Number(e.target.value) : null; save(); });
   tr.querySelector(".del").addEventListener("click", ()=>{ state.costs.splice(i,1); save(); renderCosts(); });
   return tr;
 }
+
+const orderOptions = sel =>
+  ['<option value="">— General —</option>']
+    .concat(state.orders.map(o=>`<option value="${o.no}" ${String(o.no)===String(sel)?"selected":""}>${orderLabel(o)}</option>`))
+    .join("");
 
 document.getElementById("weekFilter").addEventListener("change", e=>{
   costWeekFilter = e.target.value; renderCosts();
@@ -186,10 +193,15 @@ function orderCard(o, oi){
     </div>
     <div class="order-bottom">
       <button class="btn-soft f-add">+ Add dish</button>
-      <div class="order-subtotal">Order Total <strong class="money-green sub">${money(orderTotal(o))}</strong></div>
+      <div class="order-subtotal">
+        Order Total <strong class="money-green sub">${money(orderTotal(o))}</strong>
+        <span class="order-extra">· Ingredients <strong class="ing money-red">${money(costForOrder(o.no))}</strong>
+        · Profit <strong class="prof ${orderTotal(o)-costForOrder(o.no)>=0?'money-green':'money-red'}">${money(orderTotal(o)-costForOrder(o.no))}</strong></span>
+      </div>
     </div>`;
 
   const subEl = card.querySelector(".sub");
+  const profEl = card.querySelector(".prof");
   const dayEl = card.querySelector(".order-day");
   const tbody = card.querySelector("tbody");
 
@@ -200,10 +212,10 @@ function orderCard(o, oi){
   });
   card.querySelector(".f-add").addEventListener("click", ()=>{ o.items.push({item:"",qty:1,price:0}); save(); renderOrders(); });
 
-  o.items.forEach((it, ii)=> tbody.appendChild(orderItemRow(o, it, ii, subEl)));
+  o.items.forEach((it, ii)=> tbody.appendChild(orderItemRow(o, it, ii, subEl, profEl)));
   return card;
 }
-function orderItemRow(o, it, ii, subEl){
+function orderItemRow(o, it, ii, subEl, profEl){
   const tr = document.createElement("tr");
   tr.innerHTML = `
     <td><select class="cell-select f-item">${menuOptions(it.item)}</select></td>
@@ -217,6 +229,11 @@ function orderItemRow(o, it, ii, subEl){
   const recalc = ()=>{
     lineEl.textContent = money((Number(it.qty)||0)*(Number(it.price)||0));
     subEl.textContent  = money(orderTotal(o));
+    if(profEl){
+      const p = orderTotal(o) - costForOrder(o.no);
+      profEl.textContent = money(p);
+      profEl.className = "prof " + (p>=0 ? "money-green" : "money-red");
+    }
     renderSummary();
   };
   tr.querySelector(".f-qty").addEventListener("input", e=>{ it.qty = e.target.value; recalc(); save(); });
@@ -244,6 +261,16 @@ function renderProfit(){
   document.getElementById("pOrders").textContent = state.orders.length;
   document.getElementById("pItems").textContent  = totalItems();
   document.getElementById("pMargin").textContent = sales > 0 ? Math.round((net/sales)*100) + "%" : "—";
+
+  const pl = weeklyPL();
+  document.querySelector("#plTable tbody").innerHTML = pl.length
+    ? pl.map(w=>`<tr>
+        <td>${w.label}</td>
+        <td class="num money-green">${money(w.sales)}</td>
+        <td class="num money-red">${money(w.cost)}</td>
+        <td class="num"><strong class="${w.net>=0?'money-green':'money-red'}">${money(w.net)}</strong></td>
+      </tr>`).join("")
+    : `<tr><td colspan="4" class="empty">No data yet.</td></tr>`;
 }
 
 /* ====================== Reset ====================== */

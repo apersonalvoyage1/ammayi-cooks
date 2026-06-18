@@ -198,6 +198,7 @@ function weekLabel(key){
   return `${monStr} – ${sun.toLocaleDateString("en-GB",opt)} ${sun.getFullYear()}`;
 }
 /* [{key, label, total, count}] sorted newest first, undated last */
+const sortWeeks = (a,b)=> a.key===UNDATED ? 1 : b.key===UNDATED ? -1 : (a.key < b.key ? 1 : -1);
 function costsByWeek(){
   const map = {};
   state.costs.forEach(r=>{
@@ -206,7 +207,24 @@ function costsByWeek(){
     map[k].total += (Number(r.qty)||0)*(Number(r.price)||0);
     map[k].count += 1;
   });
-  return Object.values(map)
-    .map(w=>({...w, label:weekLabel(w.key)}))
-    .sort((a,b)=> a.key===UNDATED ? 1 : b.key===UNDATED ? -1 : (a.key < b.key ? 1 : -1));
+  return Object.values(map).map(w=>({...w, label:weekLabel(w.key)})).sort(sortWeeks);
 }
+
+/* Weekly profit & loss: [{key,label,sales,cost,net}] newest first */
+function weeklyPL(){
+  const map = {};
+  const touch = k => (map[k] = map[k] || {key:k, sales:0, cost:0});
+  state.orders.forEach(o=> touch(weekKey(o.date)).sales += orderTotal(o));
+  state.costs.forEach(r=> touch(weekKey(r.date)).cost += (Number(r.qty)||0)*(Number(r.price)||0));
+  return Object.values(map)
+    .map(w=>({...w, net:w.sales-w.cost, label:weekLabel(w.key)})).sort(sortWeeks);
+}
+
+/* ---- Per-order cost linking ---- */
+function orderLabel(o){
+  const d = o.date ? new Date(o.date+"T00:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"}) : "no date";
+  return `#${pad(o.no)} · ${o.customer||"—"} · ${d}`;
+}
+const costForOrder = no => state.costs
+  .filter(r => r.orderNo === no)
+  .reduce((s,r)=> s + (Number(r.qty)||0)*(Number(r.price)||0), 0);
