@@ -79,6 +79,23 @@ const SEED_COSTS = [
   {name:"Okra/Gawar/Karela/Tindora",     qty:1, unit:"pcs",   price:1.68, date:BILL_DATE},
 ];
 
+/* ---- One-time bill imports: appended to existing data once (never wipes) ----
+   Each import runs once (tracked by id in state.imports), so opening the app
+   adds these to the shared data without a reset. */
+const IMPORTS = [
+  { id:"bills_1", date:"2026-06-18", note:"Sainsbury's, Cardiff (paid £13.71)", items:[
+    {name:"Soft Rolls (4-pack)",            qty:2,    unit:"pcs", price:0.90}, // 2 for £1.80
+    {name:"Classic Tomatoes (x6)",          qty:2,    unit:"pcs", price:0.99},
+    {name:"Closed Cup Mushrooms",           qty:1,    unit:"pcs", price:1.29},
+    {name:"Sweeteners 300s",                qty:1,    unit:"pcs", price:2.15}, // £3.30 − £1.15 Nectar
+    {name:"Ginger (loose)",                 qty:0.16, unit:"kg",  price:5.60},
+    {name:"Carrots (1kg)",                  qty:1,    unit:"kg",  price:0.69},
+    {name:"Baby Potatoes (1kg)",            qty:1,    unit:"kg",  price:1.05},
+    {name:"Self Raising Flour (McDougalls)",qty:1,    unit:"pcs", price:1.85},
+    {name:"Greeting Card",                  qty:1,    unit:"pcs", price:2.00},
+  ]},
+];
+
 /* ---- Seed orders: bulk orders, each with an order number + multiple items ---- */
 const SEED_ORDERS = [
   {no:1, date:"2026-06-16", customer:"Priya",
@@ -130,20 +147,34 @@ function save(){
   }, 350);
 }
 
-function connectCloud(onChange, onError){
+function connectCloud(onChange, onError, onReady){
   dbRef = fbDb.ref(DB_PATH);
+  let first = true;
   dbRef.on("value", snap=>{
     const data = snap.val();
     if(!data){                       // first ever run → seed the cloud
       suppressEcho = JSON.stringify(state);
       dbRef.set(state).catch(err=> onError && onError(err));
-      return;
+    }else{
+      const json = JSON.stringify(data);
+      if(json !== suppressEcho && json !== JSON.stringify(state)) applyRemote(data, onChange);
     }
-    const json = JSON.stringify(data);
-    if(json === suppressEcho) return;          // echo of our own write
-    if(json === JSON.stringify(state)) return; // no real change
-    applyRemote(data, onChange);
+    if(first){ first = false; onReady && onReady(); }
   }, err=> onError && onError(err));
+}
+
+/* Append any not-yet-applied one-time bill imports. Returns true if it changed data. */
+function applyImports(){
+  if(!state.imports) state.imports = {};
+  let changed = false;
+  IMPORTS.forEach(imp=>{
+    if(state.imports[imp.id]) return;
+    imp.items.forEach(it=> state.costs.push({...it, date:imp.date, orderNo:null}));
+    state.imports[imp.id] = true;
+    changed = true;
+  });
+  if(changed) save();
+  return changed;
 }
 function disconnectCloud(){
   if(dbRef){ dbRef.off(); dbRef = null; }

@@ -276,7 +276,7 @@ function renderProfit(){
 /* ====================== Reset ====================== */
 document.getElementById("resetData").addEventListener("click",()=>{
   if(confirm("Reset ALL shared costs and orders back to the starter data?\nThis affects everyone, on every device.")){
-    resetData(); route();
+    resetData(); applyImports(); route();
   }
 });
 
@@ -298,6 +298,7 @@ function showLogin(){
 if(!cloudMode){
   // Offline / opened-as-file fallback: local-only, no login.
   document.getElementById("userBox").hidden = true;
+  applyImports();
   showApp();
 } else {
   const authErr = code => ({
@@ -336,7 +337,7 @@ if(!cloudMode){
       showApp();                       // show the dashboard first, no matter what
       if(!cloudConnected){
         cloudConnected = true;
-        try{ connectCloud(renderCurrent, cloudError); }
+        try{ connectCloud(renderCurrent, cloudError, ()=>{ if(applyImports()) renderCurrent(); }); }
         catch(e){ cloudError(e); }
       }
     }else{
