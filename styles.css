@@ -223,7 +223,24 @@ td.num .cell-input{text-align:right;}
 .oc-field .cell-input{border:1px solid var(--line);background:#fff;}
 .order-card .table-wrap{margin:0 16px;}
 .order-items{min-width:460px;}
-#costTable th:first-child,#costTable td:first-child{min-width:230px;}
+#costTable th:nth-child(2),#costTable td:nth-child(2){min-width:200px;}
+
+/* ---- Costing: week filter + breakdown ---- */
+.cost-toolbar{display:flex;justify-content:flex-end;margin-bottom:12px;}
+.cost-filter{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);font-weight:600;}
+.cost-filter .cell-select{border:1px solid var(--line);background:#fff;border-radius:8px;min-width:230px;}
+.weekly-card{margin-top:20px;border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+.weekly-title{margin:0;padding:12px 16px;background:#f4ecdd;font-size:13px;letter-spacing:.5px;color:var(--ink);}
+.weekly-list{display:flex;flex-direction:column;}
+.weekly-item{display:flex;align-items:center;gap:14px;width:100%;text-align:left;
+  border:none;border-top:1px solid var(--line);background:#fff;cursor:pointer;
+  padding:13px 16px;font:inherit;color:var(--ink);transition:.12s;}
+.weekly-item:first-child{border-top:none;}
+.weekly-item:hover{background:#fbf6ec;}
+.weekly-item.on{background:#fdeee5;box-shadow:inset 3px 0 0 var(--terracotta);}
+.wk-label{font-weight:600;}
+.wk-meta{color:var(--muted);font-size:12.5px;margin-left:auto;}
+.wk-total{color:var(--terracotta-dark);font-size:15px;min-width:70px;text-align:right;}
 .order-bottom{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:12px 16px 14px;}
 .btn-soft{
   border:1px dashed var(--terracotta);background:#fff7f2;color:var(--terracotta-dark);

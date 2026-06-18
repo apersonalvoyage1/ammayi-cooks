@@ -59,23 +59,24 @@ const MENU = [
 const menuPrice = name => (MENU.find(([n])=>n===name)||[,0])[1];
 
 /* ---- Seed costs: from the Maruti Grocery Store bill (17-06-2026, £28.54) ---- */
+const BILL_DATE = "2026-06-17";
 const SEED_COSTS = [
-  {name:"Sugar (Tate Lyle 1kg)",         qty:1, unit:"pcs",   price:1.39},
-  {name:"Kalonji Seeds (100g)",          qty:1, unit:"pcs",   price:1.10},
-  {name:"Paneer",                        qty:1, unit:"pcs",   price:2.49},
-  {name:"Coriander/Spinach/Methi",       qty:2, unit:"bunch", price:1.00},
-  {name:"Idli/Dosa Batter Mix",          qty:1, unit:"pcs",   price:3.50},
-  {name:"Coconut",                       qty:1, unit:"pcs",   price:1.49},
-  {name:"Cumin/Jeera Whole",             qty:1, unit:"pcs",   price:1.99},
-  {name:"Ching's Green Chilli Sauce",    qty:1, unit:"pcs",   price:1.99},
-  {name:"Table Salt",                    qty:1, unit:"pcs",   price:1.19},
-  {name:"Minced Ginger Garlic",          qty:1, unit:"pcs",   price:1.89},
-  {name:"Ching's Schezwan Stir Fry Sauce",qty:1, unit:"pcs",  price:2.49},
-  {name:"Okra/Gawar/Karela/Tindora",     qty:1, unit:"pcs",   price:1.66},
-  {name:"Ching's Dark Soy Sauce 210g",   qty:1, unit:"pcs",   price:1.99},
-  {name:"Biryani Essence",               qty:1, unit:"pcs",   price:0.59},
-  {name:"Chilli/Capsicum",               qty:1, unit:"pcs",   price:1.10},
-  {name:"Okra/Gawar/Karela/Tindora",     qty:1, unit:"pcs",   price:1.68},
+  {name:"Sugar (Tate Lyle 1kg)",         qty:1, unit:"pcs",   price:1.39, date:BILL_DATE},
+  {name:"Kalonji Seeds (100g)",          qty:1, unit:"pcs",   price:1.10, date:BILL_DATE},
+  {name:"Paneer",                        qty:1, unit:"pcs",   price:2.49, date:BILL_DATE},
+  {name:"Coriander/Spinach/Methi",       qty:2, unit:"bunch", price:1.00, date:BILL_DATE},
+  {name:"Idli/Dosa Batter Mix",          qty:1, unit:"pcs",   price:3.50, date:BILL_DATE},
+  {name:"Coconut",                       qty:1, unit:"pcs",   price:1.49, date:BILL_DATE},
+  {name:"Cumin/Jeera Whole",             qty:1, unit:"pcs",   price:1.99, date:BILL_DATE},
+  {name:"Ching's Green Chilli Sauce",    qty:1, unit:"pcs",   price:1.99, date:BILL_DATE},
+  {name:"Table Salt",                    qty:1, unit:"pcs",   price:1.19, date:BILL_DATE},
+  {name:"Minced Ginger Garlic",          qty:1, unit:"pcs",   price:1.89, date:BILL_DATE},
+  {name:"Ching's Schezwan Stir Fry Sauce",qty:1, unit:"pcs",  price:2.49, date:BILL_DATE},
+  {name:"Okra/Gawar/Karela/Tindora",     qty:1, unit:"pcs",   price:1.66, date:BILL_DATE},
+  {name:"Ching's Dark Soy Sauce 210g",   qty:1, unit:"pcs",   price:1.99, date:BILL_DATE},
+  {name:"Biryani Essence",               qty:1, unit:"pcs",   price:0.59, date:BILL_DATE},
+  {name:"Chilli/Capsicum",               qty:1, unit:"pcs",   price:1.10, date:BILL_DATE},
+  {name:"Okra/Gawar/Karela/Tindora",     qty:1, unit:"pcs",   price:1.68, date:BILL_DATE},
 ];
 
 /* ---- Seed orders: bulk orders, each with an order number + multiple items ---- */
@@ -171,3 +172,41 @@ const totalItems = () => state.orders.reduce((s,o)=>s+o.items.reduce((a,it)=>a+(
 /* ---- Misc helpers ---- */
 const dayOf = d => d ? new Date(d+"T00:00:00").toLocaleDateString("en-GB",{weekday:"long"}) : "";
 const pad = n => String(n).padStart(3,"0");
+
+/* ---- Date helpers (local, no UTC shift) ---- */
+const pad2 = n => String(n).padStart(2,"0");
+const ymd = d => d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());
+const todayStr = () => ymd(new Date());
+
+/* ---- Week helpers (weeks run Monday→Sunday, UK style) ---- */
+const UNDATED = "undated";
+function weekKey(dateStr){
+  if(!dateStr) return UNDATED;
+  const d = new Date(dateStr+"T00:00:00");
+  if(isNaN(d)) return UNDATED;
+  const day = (d.getDay()+6)%7;          // 0=Mon … 6=Sun
+  d.setDate(d.getDate()-day);            // back to Monday
+  return ymd(d);                         // Monday's date as the key (local)
+}
+function weekLabel(key){
+  if(key === UNDATED) return "No date set";
+  const mon = new Date(key+"T00:00:00");
+  const sun = new Date(mon); sun.setDate(sun.getDate()+6);
+  const opt = {day:"numeric", month:"short"};
+  const sameMonth = mon.getMonth() === sun.getMonth();
+  const monStr = mon.toLocaleDateString("en-GB", sameMonth ? {day:"numeric"} : opt);
+  return `${monStr} – ${sun.toLocaleDateString("en-GB",opt)} ${sun.getFullYear()}`;
+}
+/* [{key, label, total, count}] sorted newest first, undated last */
+function costsByWeek(){
+  const map = {};
+  state.costs.forEach(r=>{
+    const k = weekKey(r.date);
+    (map[k] = map[k] || {key:k, total:0, count:0});
+    map[k].total += (Number(r.qty)||0)*(Number(r.price)||0);
+    map[k].count += 1;
+  });
+  return Object.values(map)
+    .map(w=>({...w, label:weekLabel(w.key)}))
+    .sort((a,b)=> a.key===UNDATED ? 1 : b.key===UNDATED ? -1 : (a.key < b.key ? 1 : -1));
+}

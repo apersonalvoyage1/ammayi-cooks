@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=7" />
+  <link rel="stylesheet" href="styles.css?v=8" />
 </head>
 <body>
 
@@ -97,11 +97,18 @@
     <!-- ===== COSTING ===== -->
     <section id="view-costs" class="card panel" hidden>
       <h3 class="panel-title">COSTING / EXPENSES</h3>
+
+      <div class="cost-toolbar">
+        <label class="cost-filter">Show week
+          <select id="weekFilter" class="cell-select"></select>
+        </label>
+      </div>
+
       <div class="table-wrap">
         <table id="costTable">
           <thead>
             <tr>
-              <th>Product Name</th><th class="num">Quantity</th><th>Unit</th>
+              <th>Date</th><th>Product Name</th><th class="num">Quantity</th><th>Unit</th>
               <th class="num">Unit Price (£)</th><th class="num">Total (£)</th><th class="act">Action</th>
             </tr>
           </thead>
@@ -110,8 +117,14 @@
       </div>
       <div class="panel-foot">
         <button class="btn" id="addCostRow">+ Add Row</button>
-        <div class="grand"><span>GRAND TOTAL</span><strong id="costGrand" class="money-green">£0.00</strong></div>
+        <div class="grand"><span id="costGrandLabel">GRAND TOTAL</span><strong id="costGrand" class="money-green">£0.00</strong></div>
       </div>
+
+      <div class="weekly-card">
+        <h4 class="weekly-title">SPEND BY WEEK</h4>
+        <div id="weeklyBreakdown" class="weekly-list"></div>
+      </div>
+
       <datalist id="ingredientList"></datalist>
     </section>
 
@@ -157,9 +170,9 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-  <script src="firebase-init.js?v=7"></script>
+  <script src="firebase-init.js?v=8"></script>
 
-  <script src="store.js?v=7"></script>
-  <script src="app.js?v=7"></script>
+  <script src="store.js?v=8"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>

@@ -53,16 +53,61 @@ document.getElementById("ingredientList").innerHTML =
   INGREDIENTS.map(([n])=>`<option value="${n}">`).join("");
 
 const costGrand = () => document.getElementById("costGrand");
+let costWeekFilter = "all";   // "all" or a week key (Monday date / "undated")
 
 function renderCosts(){
+  const weeks = costsByWeek();
+
+  // keep the dropdown in sync with available weeks
+  const sel = document.getElementById("weekFilter");
+  if(!weeks.some(w=>w.key===costWeekFilter)) costWeekFilter = "all";
+  sel.innerHTML = `<option value="all">All weeks</option>` +
+    weeks.map(w=>`<option value="${w.key}" ${w.key===costWeekFilter?"selected":""}>${w.label} — ${money(w.total)}</option>`).join("");
+
+  // rows (filtered by selected week)
   const tb = document.querySelector("#costTable tbody");
   tb.innerHTML = "";
-  state.costs.forEach((row,i)=> tb.appendChild(costRow(row,i)));
-  costGrand().textContent = money(totalCost());
+  let shown = 0, shownTotal = 0;
+  state.costs.forEach((row,i)=>{
+    if(costWeekFilter !== "all" && weekKey(row.date) !== costWeekFilter) return;
+    tb.appendChild(costRow(row,i));
+    shown++; shownTotal += (Number(row.qty)||0)*(Number(row.price)||0);
+  });
+  if(shown === 0){
+    tb.innerHTML = `<tr><td colspan="7" class="empty">No items for this week.</td></tr>`;
+  }
+
+  // grand total reflects the current filter
+  const allTotal = totalCost();
+  if(costWeekFilter === "all"){
+    document.getElementById("costGrandLabel").textContent = "GRAND TOTAL";
+    costGrand().textContent = money(allTotal);
+  }else{
+    document.getElementById("costGrandLabel").textContent = "WEEK TOTAL";
+    costGrand().textContent = money(shownTotal);
+  }
+
+  // spend-by-week breakdown
+  document.getElementById("weeklyBreakdown").innerHTML = weeks.length
+    ? weeks.map(w=>`
+        <button class="weekly-item ${w.key===costWeekFilter?"on":""}" data-week="${w.key}">
+          <span class="wk-label">${w.label}</span>
+          <span class="wk-meta">${w.count} item${w.count!==1?"s":""}</span>
+          <strong class="wk-total">${money(w.total)}</strong>
+        </button>`).join("")
+    : `<p class="empty">No costs yet.</p>`;
+  document.querySelectorAll("#weeklyBreakdown .weekly-item").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      costWeekFilter = (costWeekFilter===b.dataset.week) ? "all" : b.dataset.week;
+      renderCosts();
+    });
+  });
 }
+
 function costRow(row, i){
   const tr = document.createElement("tr");
   tr.innerHTML = `
+    <td><input class="cell-input f-date" type="date" value="${row.date||""}"></td>
     <td><input class="cell-input f-name" list="ingredientList" placeholder="type or pick…" value="${row.name??""}"></td>
     <td class="num"><input class="cell-input f-qty" type="number" min="0" step="any" value="${row.qty??""}"></td>
     <td><select class="cell-select f-unit">${UNITS.map(u=>`<option ${u===row.unit?"selected":""}>${u}</option>`).join("")}</select></td>
@@ -74,8 +119,12 @@ function costRow(row, i){
   const unitSel = tr.querySelector(".f-unit");
   const recalc = ()=>{
     lineEl.textContent = money((Number(row.qty)||0)*(Number(row.price)||0));
-    costGrand().textContent = money(totalCost());
+    costGrand().textContent = money(costWeekFilter==="all" ? totalCost()
+      : state.costs.filter(r=>weekKey(r.date)===costWeekFilter)
+                   .reduce((s,r)=>s+(Number(r.qty)||0)*(Number(r.price)||0),0));
   };
+  // date change can move the row between weeks → full re-render
+  tr.querySelector(".f-date").addEventListener("change", e=>{ row.date = e.target.value; save(); renderCosts(); });
   tr.querySelector(".f-name").addEventListener("input", e=>{
     row.name = e.target.value;
     const found = INGREDIENTS.find(([n])=>n===row.name);
@@ -88,8 +137,13 @@ function costRow(row, i){
   tr.querySelector(".del").addEventListener("click", ()=>{ state.costs.splice(i,1); save(); renderCosts(); });
   return tr;
 }
+
+document.getElementById("weekFilter").addEventListener("change", e=>{
+  costWeekFilter = e.target.value; renderCosts();
+});
 document.getElementById("addCostRow").addEventListener("click",()=>{
-  state.costs.push({name:"",qty:1,unit:"kg",price:0}); save(); renderCosts();
+  const today = todayStr();
+  state.costs.push({name:"",qty:1,unit:"kg",price:0,date:today}); save(); renderCosts();
 });
 
 /* ====================== ORDERS ====================== */
@@ -174,7 +228,7 @@ function orderItemRow(o, it, ii, subEl){
   return tr;
 }
 document.getElementById("addOrder").addEventListener("click",()=>{
-  const today = new Date().toISOString().slice(0,10);
+  const today = todayStr();
   state.orders.push({no:state.nextOrderNo++, date:today, customer:"", items:[{item:"",qty:1,price:0}]});
   save(); renderOrders();
 });
